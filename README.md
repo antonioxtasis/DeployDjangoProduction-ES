@@ -1,6 +1,5 @@
 # Deploy - Proyecto Django en Servidor Ubuntu
 
-*(En desarrollo - Pendientes imágenes ilutstrativas)*
 
 **Ambiente de trabajo:**
 
@@ -19,8 +18,12 @@ App de Supervisor: "WEB_PROJECT_DJANGO"
 Repositorio en GitHub: "NuestroRepositorio"
 ```
 
+**Estructura de carpetas en el Servidor**
 
-## Paso 1 - LogIn en servidor
+![GitHub Logo](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-carpetas.png)
+
+
+## Paso 1: LogIn en servidor
 
 **Dar Permisos al archivo PRIVATE KEY FILE en tu ordenador**
 
@@ -34,7 +37,7 @@ $ chmod 400 /ruta/en/tu/ordenador/PRIVATE_KEY_FILE.pem
 $ ssh -o TCPKeepAlive=yes -o ServerAliveInterval=100 -i /ruta/en/tu/ordenador/PRIVATE_KEY_FILE.pem ubuntu@example.com
 ```
 
-## Paso 2 - Crear directorio del proyecto
+## Paso 2: Crear directorio del proyecto
 **Crear directorio en el que trabajaremos y entrar**
 
 Este directorio es el que utilizaremos como app en Supervisor
@@ -43,7 +46,7 @@ $ /home/ubuntu$ mkdir WEB_PROJECT_DJANGO
 $ cd WEB_PROJECT_DJANGO
 ```
 
-## Paso 3 - Instalar paquetes necesarios
+## Paso 3: Instalar paquetes necesarios
 **Actualizar caché de paquetes (descarga la lista de actualizaciones disponibles)**
 ```
 $ sudo apt update
@@ -70,7 +73,7 @@ $ sudo apt-get install mysql-server
 $ sudo mysql_secure_installation
 ```
 
-## Paso 4 - Python3, pip3 y VirtualEnviroment
+## Paso 4: Python3, pip3 y VirtualEnviroment
 **Instalar Python3 y pip3**
 ```
 $ sudo apt install python3.7-minimal
@@ -105,7 +108,7 @@ $ sudo chown -R $USER venv/
 ```
 
 
-## Paso 5 - GitHub (jalar nuestro proyecto)
+## Paso 5: GitHub (jalar nuestro proyecto)
 Para este paso es necesario que tengas tu repositorio en GitHub
 
 **Clonar el repositorio**
@@ -123,7 +126,7 @@ Para este paso es necesario que tengas tu repositorio en GitHub
 ```
 
 
-## Paso 5 - Gunicorn (configuración)
+## Paso 6: Gunicorn (configuración)
 
 **Crear dentro de la carpeta "/venv" los directorios "/run" y "/logs"**
 
@@ -181,7 +184,7 @@ Este script nos permite levantar nuestra aplicación django sin usar ./manage ru
 /WEB_PROJECT_DJANGO/bin/$ chmod +x start.sh
 ```
 
-## Paso 6 - Supervisor (configuración)
+## Paso 7: Supervisor (configuración)
 
 **Supervisor nos ayuda a mantener nuestra aplicación Django corriendo
 La configuración consiste en crear un script con extensión ".conf" en "/etc/supervisor/conf.d/"**
@@ -215,7 +218,7 @@ $ sudo supervisorctl start WEB_PROJECT_DJANGO       <-- correrla
 ```
 
 
-## Paso 6 - NGINX (configuración para desplegar el sitio web)
+## Paso 8: NGINX (configuración para desplegar el sitio web)
 
 **Configurar Web Server (NGINX) para conectarse con el Socket que está corriendo con Gunicorn.**
 
@@ -303,16 +306,9 @@ $ sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/myap
 $ sudo service nginx restart
 ```
 
-### ¡Listo, ya tenemos nuestro proyecto corriendo!
+### ¡Listo, ya tenemos nuestro proyecto en producción!
 
-### ;)
-
-
-
-
-
-
-
+#### ;)
 
 
 
