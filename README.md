@@ -20,7 +20,7 @@ Repositorio en GitHub: "NuestroRepositorio"
 
 **Estructura de carpetas en el Servidor**
 
-![GitHub Logo](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-carpetas.png)
+![Img - Estructura de carpetas](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-carpetas.png)
 
 
 ## Paso 1: LogIn en servidor
@@ -117,6 +117,11 @@ Para este paso es necesario que tengas tu repositorio en GitHub
 ```
 
 **Instalar dependencias del proyecto Django**
+
+Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
+
+![Img - Estructura de carpetas](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/requirements.png)
+
 ```
 (venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ pip3 install --no-cache-dir -r requirements.txt
 
