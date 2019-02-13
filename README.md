@@ -63,15 +63,6 @@ $ sudo apt-get upgrade
 $ sudo apt-get install nginx supervisor git
 ```
 
-**(Opcional) Instalar MySQL**
-```
-$ sudo apt-get install mysql-server
-```
-
-**Configurar MySQL**
-```
-$ sudo mysql_secure_installation
-```
 
 ## Paso 4: Python3, pip3 y VirtualEnviroment
 **Instalar Python3**
@@ -114,8 +105,24 @@ $ …
 $ sudo chown -R $USER venv/
 ```
 
+## Paso 5: Instalar MySQL
+```
+$ sudo apt-get install mysql-server
+```
 
-## Paso 5: GitHub (jalar nuestro proyecto)
+**Para evitar problemas con Python3.7 (missing mysql_config)**
+
+```
+$ sudo apt-get install python3.7-dev libmysqlclient-dev
+$ sudo apt-get install -y python3-mysqldb
+```
+
+**Configurar MySQL**
+```
+$ sudo mysql_secure_installation
+```
+
+## Paso 6: GitHub (jalar nuestro proyecto)
 Para este paso es necesario que tengas tu repositorio en GitHub
 
 **Clonar el repositorio**
@@ -138,7 +145,7 @@ Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
 ```
 
 
-## Paso 6: Gunicorn (configuración)
+## Paso 7: Gunicorn (configuración)
 
 **Crear dentro de la carpeta "/venv" los directorios "/run" y "/logs"**
 
@@ -196,7 +203,7 @@ Este script nos permite levantar nuestra aplicación django sin usar ./manage ru
 /WEB_PROJECT_DJANGO/bin/$ chmod +x start.sh
 ```
 
-## Paso 7: Supervisor (configuración)
+## Paso 8: Supervisor (configuración)
 
 **Supervisor nos ayuda a mantener nuestra aplicación Django corriendo
 La configuración consiste en crear un script con extensión ".conf" en "/etc/supervisor/conf.d/"**
@@ -230,7 +237,7 @@ $ sudo supervisorctl start WEB_PROJECT_DJANGO       <-- correrla
 ```
 
 
-## Paso 8: NGINX (configuración para desplegar el sitio web)
+## Paso 9: NGINX (configuración para desplegar el sitio web)
 
 **Configurar Web Server (NGINX) para conectarse con el Socket que está corriendo con Gunicorn.**
 
