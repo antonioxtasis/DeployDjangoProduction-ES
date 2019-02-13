@@ -138,10 +138,6 @@ Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
 
 ```
 (venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ pip3 install --no-cache-dir -r requirements.txt
-
-(Opcional) RUNSERVER para revisar que el proyecto esté funcionando
-
-(venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python3 manage.py runserver
 ```
 
 
@@ -150,7 +146,7 @@ Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
 **Crear dentro de la carpeta "/venv" los directorios "/run" y "/logs"**
 
 ```
-/WEB_PROJECT_DJANGO/venv/$ mkdir run <-- without sudo
+/WEB_PROJECT_DJANGO/venv/$ mkdir run        <-- sin escribir sudo
 /WEB_PROJECT_DJANGO/venv/$ sudo mkdir logs
 ```
 
