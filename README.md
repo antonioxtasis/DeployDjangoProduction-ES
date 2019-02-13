@@ -1,24 +1,24 @@
-# Deploy - Proyecto Django en Servidor Ubuntu
+# (Deploy) Django en Ubuntu 18.04.1 LTS
 
 
 **Ambiente de trabajo:**
 
 ```
-Server: t3.nano (EC2 AWS) - Ubuntu 18.04.1
+Server: t3.nano (EC2 AWS) - Ubuntu 18.04.1 LTS
 
 Python: 3.7.1 (forzar instalación)
 
-Django: Django version 2.1.5
+Django: 2.1.5
+____________________________________________
 
-...
 User en el servidor: "ubuntu"
 
 App de Supervisor: "WEB_PROJECT_DJANGO"
 
-Repositorio en GitHub: "NuestroRepositorio"
+Repositorio GitHub: "NuestroRepositorio"
 ```
 
-**Estructura de carpetas en el Servidor**
+#### Estructura de carpetas en el Servidor
 
 ![Img - Estructura de carpetas](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-carpetas.png)
 
@@ -74,12 +74,19 @@ $ sudo mysql_secure_installation
 ```
 
 ## Paso 4: Python3, pip3 y VirtualEnviroment
-**Instalar Python3 y pip3**
+**Instalar Python3**
 ```
 $ sudo apt install python3.7-minimal
 $ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 
 $ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2
 $ sudo update-alternatives --config python3
+$ sudo apt-get install python3-pip
+```
+
+**Instalar pip3**
+
+```
+$ sudo apt-get install python3-pip
 ```
 
 **Instalar virtual environment**
@@ -313,7 +320,7 @@ $ sudo service nginx restart
 
 ### ¡Listo, ya tenemos nuestro proyecto en producción!
 
-#### ;)
+### ;)
 
 
 
@@ -321,7 +328,7 @@ $ sudo service nginx restart
 
 
 ___
-### Extras 1: Actualizar código del proyecto desde GitHub
+### Extra 1: Actualizar código del proyecto desde GitHub
 
 Una vez que ya se tiene corriendo correctamente el proyecto en nuestro servidor,
 llega el momento de actualizar el código de nuestro proyecto.
@@ -345,7 +352,7 @@ $ sudo supervisorctl restart WEB_PROJECT_DJANGO
 
 
 ___
-### Extras 2: Comandos útiles
+### Extra 2: Comandos útiles
 
 Resetear nuestro virtualenv (venv) para asegurarnos que requirements.txt se actualice
 ```
