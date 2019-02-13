@@ -150,7 +150,7 @@ Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
 **Crear dentro de la carpeta "/venv" los directorios "/run" y "/logs"**
 
 ```
-/WEB_PROJECT_DJANGO/venv/$ sudo mkdir run
+/WEB_PROJECT_DJANGO/venv/$ mkdir run <-- without sudo
 /WEB_PROJECT_DJANGO/venv/$ sudo mkdir logs
 ```
 
@@ -200,7 +200,7 @@ exec ../../venv/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
 Este script nos permite levantar nuestra aplicación django sin usar ./manage runserver
 
 ```
-/WEB_PROJECT_DJANGO/bin/$ chmod +x start.sh
+/WEB_PROJECT_DJANGO/bin/$ sudo chmod +x start.sh
 ```
 
 ## Paso 8: Supervisor (configuración)
