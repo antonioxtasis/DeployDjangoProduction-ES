@@ -1,22 +1,28 @@
-# (Deploy) Django en Ubuntu 18.04.1 LTS
+# (Deploy) Django / Ubuntu 18.04.1 LTS
 
+Este documento pretende ser un **tutorial** completo de cómo llevar a cabo la subida o deploy de un proyecto Django a un ambiente real de producción. En este ejemplo estamos utilizando un servidor ubuntu hospedado en Amazon Web Services, pero se puede utilizar cualquier servicio de hospedaje como DigitalOcean, Heroku o PythonAnywhere.
 
-**Ambiente de trabajo:**
+>
+En el servidor configuramos `nginx` y `supervisor`, y en el proyecto Django configuramos `gunicorn`. Estas 3 tecnologías sirven para poder levantar y tener corriendo nuestro proyecto.
 
-```
-Server: t3.nano (EC2 AWS) - Ubuntu 18.04.1 LTS
+>
+* [Nginx](https://en.wikipedia.org/wiki/Nginx) es un servidor web que también se puede utilizar como proxy inverso, equilibrador de carga, proxy de correo y caché HTTP.
+* [Supervisor](http://supervisord.org/introduction.html) es un sistema cliente/servidor que permite a sus usuarios controlar varios procesos en sistemas operativos similares a UNIX. 
+* [Gunicorn](https://gunicorn.org/) es un Servidor HTTP de Python WSGI para UNIX. El servidor Gunicorn es ampliamente compatible con varios marcos web, simplemente implementado, ligero en cuanto a recursos del servidor y bastante rápido.
 
-Python: 3.7.1 (forzar instalación)
+***
+ 
+#### Ambiente de trabajo
 
-Django: 2.1.5
-____________________________________________
+* Server: `t3.nano (EC2 AWS) - Ubuntu 18.04.1 LTS`
+* Python: `3.7.1 (forzar instalación)`
+* Django: `2.1.5`
 
-User en el servidor: "ubuntu"
+#### Datos de prueba
 
-App de Supervisor: "WEB_PROJECT_DJANGO"
-
-Repositorio GitHub: "NuestroRepositorio"
-```
+* User en el servidor: `ubuntu`
+* App de Supervisor: `WEB_PROJECT_DJANGO`
+* Repositorio GitHub: `NuestroRepositorio`
 
 #### Estructura de carpetas en el Servidor
 
@@ -25,13 +31,17 @@ Repositorio GitHub: "NuestroRepositorio"
 
 ## Paso 1: LogIn en servidor
 
-**Dar Permisos al archivo PRIVATE KEY FILE en tu ordenador**
+**Permisos a llave SSH**
+
+Dar permisos al archivo `.pem` que descargaste en tu ordenador
 
 ```
-$ chmod 400 /ruta/en/tu/ordenador/PRIVATE_KEY_FILE.pem
+$ chmod 400 /ruta/en/tu/ordenador/YOUR_PRIVATE_KEY_FILE.pem
 ```
 
 **Login SSH**
+
+Conectarse desde una ventana de Terminal al servidor de AWS
 
 ```
 $ ssh -o TCPKeepAlive=yes -o ServerAliveInterval=100 -i /ruta/en/tu/ordenador/PRIVATE_KEY_FILE.pem ubuntu@example.com
@@ -41,6 +51,7 @@ $ ssh -o TCPKeepAlive=yes -o ServerAliveInterval=100 -i /ruta/en/tu/ordenador/PR
 **Crear directorio en el que trabajaremos y entrar**
 
 Este directorio es el que utilizaremos como app en Supervisor
+
 ```
 $ /home/ubuntu$ mkdir WEB_PROJECT_DJANGO
 $ cd WEB_PROJECT_DJANGO
@@ -48,30 +59,33 @@ $ cd WEB_PROJECT_DJANGO
 
 ## Paso 3: Instalar paquetes necesarios
 **Actualizar caché de paquetes (descarga la lista de actualizaciones disponibles)**
+
 ```
 $ sudo apt update
 $ sudo apt-get update
 ```
 
 **Instala las actualizaciones disponibles**
+
 ```
 $ sudo apt-get upgrade
 ```
 
 **Instalar paquetes necesarios**
+
 ```
 $ sudo apt-get install nginx supervisor git
 ```
 
 
-## Paso 4: Python3, pip3 y VirtualEnviroment
+## Paso 4: Python3, Pip3 y VirtualEnviroment
 **Instalar Python3**
+
 ```
 $ sudo apt install python3.7-minimal
 $ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 
 $ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2
 $ sudo update-alternatives --config python3
-$ sudo apt-get install python3-pip
 ```
 
 **Instalar pip3**
@@ -81,16 +95,19 @@ $ sudo apt-get install python3-pip
 ```
 
 **Instalar virtual environment**
+
 ```
 $ sudo pip3 install virtualenv
 ```
 
-**Crear entorno virtual llamado "venv"**
+**Crear entorno virtual llamado _`venv`_**
+
 ```
 /WEB_PROJECT_DJANGO/$ virtualenv --python=python3.7 venv
 ```
 
 **Activar entorno virtual**
+
 ```
 /WEB_PROJECT_DJANGO$ source venv/bin/activate
 (venv)$ …
@@ -100,17 +117,19 @@ Para desactivarlo
 $ …
 ```
 
-**Dar permisos al folder "venv"** 
+**Dar permisos a la carpeta `/venv`** 
+
 ```
 $ sudo chown -R $USER venv/
 ```
 
 ## Paso 5: Instalar MySQL
+
 ```
 $ sudo apt-get install mysql-server
 ```
 
-**Para evitar problemas con Python3.7 (missing mysql_config)**
+**Para evitar problemas con Python3.7 (Error: missing mysql_config)**
 
 ```
 $ sudo apt-get install python3.7-dev libmysqlclient-dev
@@ -118,21 +137,23 @@ $ sudo apt-get install -y python3-mysqldb
 ```
 
 **Configurar MySQL**
+
 ```
 $ sudo mysql_secure_installation
 ```
 
-## Paso 6: GitHub (jalar nuestro proyecto)
+## Paso 6: GitHub (descargar nuestro proyecto)
 Para este paso es necesario que tengas tu repositorio en GitHub
 
 **Clonar el repositorio**
+
 ```
 (venv)/WEB_PROJECT_DJANGO$ git clone https://github.com/usuario-github/NuestroRepositorio.git
 ```
 
 **Instalar dependencias del proyecto Django**
 
-Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
+Nuestro archivo `requirements.txt` debe de por lo menos tener estas dependencias
 
 ![Img - Estructura de carpetas](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/requirements.png)
 
@@ -143,21 +164,21 @@ Nuestro archivo requirements.txt debe de por lo menos tener estas dependencias
 
 ## Paso 7: Gunicorn (configuración)
 
-**Crear dentro de la carpeta "/venv" los directorios "/run" y "/logs"**
+**Crear dentro de la carpeta `/venv` las subcarpetas `/run` y `/logs`**
 
 ```
-/WEB_PROJECT_DJANGO/venv/$ mkdir run        <-- sin escribir sudo
+/WEB_PROJECT_DJANGO/venv/$ mkdir run        	<-- sin escribir sudo
 /WEB_PROJECT_DJANGO/venv/$ sudo mkdir logs
 ```
 
-**Crear script llamado "start.sh" dentro de "/bin"**
+**Crear script llamado `start.sh` dentro de `/bin`**
 
 ```
 /WEB_PROJECT_DJANGO/venv/$ cd bin
 /WEB_PROJECT_DJANGO/venv/bin/$ sudo nano start.sh
 ```
 
-```python
+```php
 #!/bin/bash
 
 NAME="WEB_PROJECT_DJANGO" # Nombre dela aplicación
@@ -193,7 +214,7 @@ exec ../../venv/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
 
 **Permitir la ejecución del archivo**
 
-Este script nos permite levantar nuestra aplicación django sin usar ./manage runserver
+Este script nos permite levantar nuestra aplicación django sin usar `$ manage.py runserver`
 
 ```
 /WEB_PROJECT_DJANGO/bin/$ sudo chmod +x start.sh
@@ -201,15 +222,14 @@ Este script nos permite levantar nuestra aplicación django sin usar ./manage ru
 
 ## Paso 8: Supervisor (configuración)
 
-**Supervisor nos ayuda a mantener nuestra aplicación Django corriendo
-La configuración consiste en crear un script con extensión ".conf" en "/etc/supervisor/conf.d/"**
+**Supervisor nos ayuda a mantener nuestra aplicación Django corriendo. La configuración consiste en crear el script `myapp.conf` dentro de la carpeta `/etc/supervisor/conf.d/`**
 
 ```
 $ sudo touch /etc/supervisor/conf.d/myapp.conf
 $ sudo nano /etc/supervisor/conf.d/myapp.conf
 ```
 
-```
+```php
 [program:WEB_PROJECT_DJANGO]
 command = /home/ubuntu/WEB_PROJECT_DJANGO/venv/bin/start.sh ; Comando para correr la app
 user = ubuntu ; Usuario con el que vamos a correr la app
@@ -219,6 +239,7 @@ redirect_stderr = true ; Guardar los errores en el log
 
 
 **Indicar a Supervisor que lea las nuevas configuraciones y que se actualice**
+
 ```
 $ sudo supervisorctl reread
 $ sudo supervisorctl update
@@ -239,15 +260,19 @@ $ sudo supervisorctl start WEB_PROJECT_DJANGO       <-- correrla
 
 NGINX cuenta con 2 carpetas:
 
-- /etc/nginx/sites-available/ <-- aquí se almacenan las configuraciones de los sitios disponibles
-- /etc/nginx/sites-enabled/ <-- aquí se almacenan los sitios activos
+- `/etc/nginx/sites-available/` <-- aquí se almacenan las configuraciones de los sitios disponibles
+- `/etc/nginx/sites-enabled/` <-- aquí se almacenan los sitios activos
+
+**Creamos un archivo llamado `myapp.conf`**
 
 ```
-$ sudo touch /etc/nginx/sites-available/myapp.conf
 $ sudo nano /etc/nginx/sites-available/myapp.conf
 ```
 
-```
+Dentro del archivo escribrimos lo siguiente de acuerdo a nuestra IP o dominio web
+
+
+```php
 upstream myapp_server {
   server unix:/home/ubuntu/WEB_PROJECT_DJANGO/venv/run/gunicorn.sock fail_timeout=0;
 }
@@ -312,77 +337,90 @@ server {
 ```
 
 **Dar de alta la configuración de nuestro sitio web**
+
 ```
 $ sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/myapp.conf
 ```
 
 **Reiniciar nginx**
+
 ```
 $ sudo service nginx restart
 ```
 
 ### ¡Listo, ya tenemos nuestro proyecto en producción!
 
-### ;)
+😎
 
 
 
 
 
+***
 
-___
 ### Extra 1: Actualizar código del proyecto desde GitHub
 
 Una vez que ya se tiene corriendo correctamente el proyecto en nuestro servidor,
 llega el momento de actualizar el código de nuestro proyecto.
 
 
-1. Actualizar código
+**Actualizar código**
+
 - Eliminar primero cualquier cambio que hayamos hecho en el proyecto
+
 ```
 WEB_PROJECT_DJANGO/NuestroRepositorio$ git reset --hard HEAD
 ```
+
 - Jalar desde GitHub los cambios 
+
 ```
 WEB_PROJECT_DJANGO/NuestroRepositorio$ git pull origin master
 ```
 
+**Reiniciar la Aplicación con Supervisor**
 
-2. Reiniciar la aplicación con Supervisor
 ```
 $ sudo supervisorctl restart WEB_PROJECT_DJANGO
 ``` 
 
 
-___
+***
+
 ### Extra 2: Comandos útiles
 
 Resetear nuestro virtualenv (venv) para asegurarnos que requirements.txt se actualice
+
 ```
 $ sudo virtualenv --clear venv
 ```
 
 Eliminar directorio
+
 ```
 $ sudo rm -r folderName
 ```
 
 Mover directorio
+
 ```
 $ sudo mv fromPath/ toPath/
 ```
 
 Si hay varias versiones de python (ver todas las versiones):
+
 ```
 $ apt list --installed | grep pytho
 ```
 
 Remover completamente los paquetes python
+
 ```
 $ sudo apt purge python-pip python-dev
 ```
 
 Remover todos los paquestes instalados por pip
+
 ```
 $ pip uninstall -r requirements.txt -y      (método 1)
 $ pip freeze | xargs pip uninstall -y       (método 2)
@@ -395,8 +433,8 @@ $ pip freeze | xargs pip uninstall -y       (método 2)
 
 
 ## Referencias
-[Platzi - ¿Cómo llevar Django a producción?](https://platzi.com/blog/llevar-django-a-produccion/)
+* [Platzi - ¿Cómo llevar Django a producción?](https://platzi.com/blog/llevar-django-a-produccion/)
 
-[Linux For Windows Mac User - How to Install Python 3.7 and make default in Ubuntu 18.04 LTS](https://www.youtube.com/watch?v=a4XDW3czH0c)
+* [Linux For Windows Mac User - How to Install Python 3.7 and make default in Ubuntu 18.04 LTS](https://www.youtube.com/watch?v=a4XDW3czH0c)
 
-[WebForefront - Django settings.py for the real world](https://www.webforefront.com/django/configuredjangosettings.html)
+* [WebForefront - Django settings.py for the real world](https://www.webforefront.com/django/configuredjangosettings.html)
