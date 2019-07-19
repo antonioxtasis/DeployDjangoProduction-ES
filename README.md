@@ -28,6 +28,10 @@ En el servidor configuramos `nginx` y `supervisor`, y en el proyecto Django conf
 
 ![Img - Estructura de carpetas](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-carpetas.png)
 
+#### Se recomienda dividir el archivo settings 
+
+![Img - Estructura settings](https://raw.githubusercontent.com/antonioxtasis/DeployDjangoProduction-ES/master/imgs/estructura-settings.png)
+
 
 ## Paso 1: LogIn en servidor
 
@@ -140,10 +144,152 @@ $ sudo apt-get install -y python3-mysqldb
 
 ```
 $ sudo mysql_secure_installation
+
+-----------------------------------
+Configurar de la siguiente manera:
+-----------------------------------
+
+Securing the MySQL server deployment.
+
+Connecting to MySQL using a blank password.
+
+VALIDATE PASSWORD PLUGIN can be used to test passwords
+and improve security. It checks the strength of password
+and allows the users to set only those passwords which are
+secure enough. Would you like to setup VALIDATE PASSWORD plugin?
+
+Press y|Y for Yes, any other key for No: Y <<<<<<< Respuesta
+
+There are three levels of password validation policy:
+
+LOW    Length >= 8
+MEDIUM Length >= 8, numeric, mixed case, and special characters
+STRONG Length >= 8, numeric, mixed case, special characters and dictionary                  file
+
+Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG: 1
+Please set the password for root here.
+
+New password: ______________
+
+Re-enter new password: ______________
+
+Estimated strength of the password: 100 
+Do you wish to continue with the password provided?(Press y|Y for Yes, any other key for No) : Y <<<<<<< Respuesta
+
+By default, a MySQL installation has an anonymous user,
+allowing anyone to log into MySQL without having to have
+a user account created for them. This is intended only for
+testing, and to make the installation go a bit smoother.
+You should remove them before moving into a production
+environment.
+
+Remove anonymous users? (Press y|Y for Yes, any other key for No) : Y <<<<<<< Respuesta
+Success.
+
+
+Normally, root should only be allowed to connect from
+'localhost'. This ensures that someone cannot guess at
+the root password from the network.
+
+Disallow root login remotely? (Press y|Y for Yes, any other key for No) : N <<<<<<< Respuesta
+Success.
+
+By default, MySQL comes with a database named 'test' that
+anyone can access. This is also intended only for testing,
+and should be removed before moving into a production
+environment.
+
+
+Remove test database and access to it? (Press y|Y for Yes, any other key for No) : Y <<<<<<< Respuesta
+ - Dropping test database...
+Success.
+
+ - Removing privileges on test database...
+Success.
+
+Reloading the privilege tables will ensure that all changes
+made so far will take effect immediately.
+
+Reload privilege tables now? (Press y|Y for Yes, any other key for No) : Y <<<<<<< Respuesta
+Success.
+
+All done! 
+
 ```
 
-## Paso 6: GitHub (descargar nuestro proyecto)
-Para este paso es necesario que tengas tu repositorio en GitHub
+**Crear usuario “ubuntu” con password**
+
+```
+$ sudo mysql -u root
+
+mysql> USE mysql;
+mysql> CREATE USER 'ubuntu'@'localhost' IDENTIFIED BY 'password-mysql';
+mysql> GRANT ALL PRIVILEGES ON *.* TO 'ubuntu'@'localhost';
+mysql> FLUSH PRIVILEGES;
+mysql> exit;
+
+[Crear base de datos]
+
+mysql> CREATE DATABASE db_name;
+
+$ service mysql restart
+```
+
+**Permisos para conexión remota a la base de datos**
+
+```
+Testear en una nueva terminal:
+$ mysql -u username -h 192.X.X.X -p
+
+Si sale este error:
+ERROR 2003 (HY000): Can't connect to MySQL server on '192.X.X.X' (111)
+
+Entonces en la instancia realizar los siguientes 3 pasos:
+
+
+Paso 1. Agregar regla en el Security Group de la instancia
+=======
+
+MYSQL/Aurora | TCP | Puerto: 3306 | 185.X.X.X/32
+
+
+Paso 2. Revisar Firewall
+=======
+
+Primero, si ufw firewall esta habilitado, asegurarnos que tenemos una regla para MySQL
+$ sudo ufw allow mysql
+
+Reiniciar el servicio
+$ sudo service ufw restart
+
+
+Paso 3. Permitir conexiones remotas en /etc/mysql/mysql.conf.d/mysqld.cnf
+=========
+
+Comentar out “bind-address” en el archive de configuración de MySQL (mysqld.cnf)
+
+$ sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+
+Find the line bind-address  (CTRL + W to search)
+………………………………………………………………………………………………………………………………………………
+#
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+# bind-address = 127.0.0.1.  <<<<—— esta linea es la que hay que comentar
+………………………………………………………………………………………………………………………………………………
+
+Esa línea le dice a MySQL que solo acepte conexiones locales.
+
+```
+
+**Reiniciar el servicio MySQL para que los cambios tomen efecto**
+
+```
+$ sudo service mysql restart
+```
+
+## Paso 6: GitHub (clonar proyecto en server)
+Para este paso es necesario que tengas tu repositorio en GitHub/Bitbucket/GitLab
 
 **Clonar el repositorio**
 
@@ -159,6 +305,65 @@ Nuestro archivo `requirements.txt` debe de por lo menos tener estas dependencias
 
 ```
 (venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ pip3 install --no-cache-dir -r requirements.txt
+```
+
+**Migraciones**
+
+```
+(venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py makemigrations --settings=web_project.settings.prod
+(venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py migrate --settings=web_project.settings.prod
+```
+
+**Crear super usuario**
+
+```
+(venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py createsuperuser --settings=web_project.settings.prod
+```
+
+**Tener bien configurado esto en el archivo settings**
+
+```python
+from .base import *
+
+with open('/etc/secret_key.txt') as f:
+    SECRET_KEY = f.read().strip()
+
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'X.X.X.X', #url o dominio de la instancia ubuntu
+]
+
+# Database
+# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'db_name',
+        'USER': 'ubuntu',
+        'PASSWORD': 'password-mysql',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
+```
+
+**Crear archivo THE SECRET KEY `/etc/secret_key.txt`**
+
+```
+$ sudo nano /etc/secret_key.txt <-- escribirle la password que queramos
+$ chmod 400 /etc/secret_key.txt <-- dar permisos
+
+```
+
+**Desactivar virtual enviroment**
+En caso de tenerlo activo
+
+```
+(venv)$ deactivate
+
 ```
 
 
@@ -178,7 +383,7 @@ Nuestro archivo `requirements.txt` debe de por lo menos tener estas dependencias
 /WEB_PROJECT_DJANGO/venv/bin/$ sudo nano start.sh
 ```
 
-```php
+```ruby
 #!/bin/bash
 
 NAME="WEB_PROJECT_DJANGO" # Nombre dela aplicación
@@ -187,7 +392,7 @@ SOCKFILE=/home/ubuntu/WEB_PROJECT_DJANGO/venv/run/gunicorn.sock # Ruta donde se 
 USER=ubuntu # Usuario con el que vamos a correr la app
 GROUP=ubuntu # Grupo con el que se va a correr la app
 NUM_WORKERS=3 # Número de workers quese van a utilizar para correr la aplicación
-DJANGO_SETTINGS_MODULE=web_project.settings # ruta de los settings
+DJANGO_SETTINGS_MODULE=web_project.settings.prod # ruta de los settings (../web_project/settings/prod.py)
 DJANGO_WSGI_MODULE=web_project.wsgi # Nombre del módulo wsgi
 
 echo "Starting $NAME as `whoami`"
@@ -222,7 +427,7 @@ Este script nos permite levantar nuestra aplicación django sin usar `$ manage.p
 
 ## Paso 8: Supervisor (configuración)
 
-**Supervisor nos ayuda a mantener nuestra aplicación Django corriendo. La configuración consiste en crear el script `myapp.conf` dentro de la carpeta `/etc/supervisor/conf.d/`**
+**Supervisor nos ayuda a mantener nuestra aplicación `WEB_PROJECT_DJANGO` corriendo. La configuración consiste en crear el script `myapp.conf` dentro de la carpeta `/etc/supervisor/conf.d/`**
 
 ```
 $ sudo touch /etc/supervisor/conf.d/myapp.conf
@@ -246,11 +451,13 @@ $ sudo supervisorctl update
 ```
 
 ```
+----------------------------------------------------------------------
 Comandos para realizar acciones en la “aplicación”
 $ sudo supervisorctl status WEB_PROJECT_DJANGO      <-- ver status                      
 $ sudo supervisorctl stop WEB_PROJECT_DJANGO        <-- pararla
 $ sudo supervisorctl restart WEB_PROJECT_DJANGO     <-- reiniciarla
 $ sudo supervisorctl start WEB_PROJECT_DJANGO       <-- correrla
+----------------------------------------------------------------------
 ```
 
 
@@ -272,7 +479,7 @@ $ sudo nano /etc/nginx/sites-available/myapp.conf
 Dentro del archivo escribrimos lo siguiente de acuerdo a nuestra IP o dominio web
 
 
-```php
+```ruby
 upstream myapp_server {
   server unix:/home/ubuntu/WEB_PROJECT_DJANGO/venv/run/gunicorn.sock fail_timeout=0;
 }
@@ -280,7 +487,7 @@ upstream myapp_server {
 server {
 
   listen 80;
-  server_name example.com www.example.com;
+  server_name 192.X.X.X example.com www.example.com;
 
   client_max_body_size 4G;
 
