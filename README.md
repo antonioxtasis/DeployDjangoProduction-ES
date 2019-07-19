@@ -320,7 +320,8 @@ Nuestro archivo `requirements.txt` debe de por lo menos tener estas dependencias
 (venv)/WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py createsuperuser --settings=web_project.settings.prod
 ```
 
-**Tener bien configurado esto en el archivo settings**
+**Tener bien configurado el archivo `../web_project/settings/prod.py`**
+En este caso el archivo es prod.py, ya que dividimos nuestro settings en archivos para ambiente de desarrollo (dev.py) y producción (prod.py)
 
 ```python
 from .base import *
