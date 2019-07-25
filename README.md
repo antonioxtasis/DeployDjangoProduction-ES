@@ -586,6 +586,34 @@ WEB_PROJECT_DJANGO/NuestroRepositorio$ git reset --hard HEAD
 WEB_PROJECT_DJANGO/NuestroRepositorio$ git pull origin master
 ```
 
+>
+**En caso de haber importado librerías con "pip" y haber hecho cambios de migración en la BDD**
+
+>
+Activar virtual enviroment
+>
+```
+WEB_PROJECT_DJANGO$ source venv/bin/activate
+```
+>
+Instalar las librerías
+
+>
+```
+(venv) WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ pip3 install --no-cache-dir -r requirements.txt
+```
+
+>
+Hacer las migraciones
+
+>
+```
+(venv) WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py makemigrations --settings=web_project.settings.prod
+(venv) WEB_PROJECT_DJANGO/NuestroRepositorio/web_project$ python manage.py migrate --settings=web_project.settings.prod
+```
+
+>
+
 **Reiniciar la Aplicación con Supervisor**
 
 ```
